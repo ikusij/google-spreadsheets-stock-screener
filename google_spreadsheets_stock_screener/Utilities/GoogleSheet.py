@@ -63,7 +63,7 @@ def get_range(start_cell: str, shape: tuple[int, int]) -> str:
 
 class GoogleSheet:
 
-    def __init__(self):
+    def __init__(self, spreadsheet_id: str = os.getenv("SPREADSHEET_ID")):
 
         """
         Establish secure-connection with Google Spreadsheet.
@@ -90,7 +90,8 @@ class GoogleSheet:
         try:
             
             service = build("sheets", "v4", credentials=credentials)
-            self.sheet = service.spreadsheets()
+            self._spreadsheet = service.spreadsheets()
+            self._spreadsheet_id = spreadsheet_id
 
         except HttpError as err:
 
@@ -105,7 +106,7 @@ class GoogleSheet:
         @param `str sheet_name`: The name of the sheet to establish connection.
         """
 
-        return self.Sheet(self.sheet, sheet_name)
+        return self.Sheet(self, sheet_name)
 
     class Sheet:
 
@@ -116,9 +117,9 @@ class GoogleSheet:
             @param `str sheet_name`: The name of the sheet to establish connection.
             """
             
-            self.spreadsheet = spreadsheet
+            self._spreadsheet = spreadsheet
             
-            self.sheet_name = sheet_name
+            self._sheet_name = sheet_name
             
         def read(self, range: str = None) -> list[list[str]]: 
 
@@ -129,9 +130,9 @@ class GoogleSheet:
             @return `list[list[str]]`: range content.
             """
             
-            values = self.spreadsheet.values().get(
-                spreadsheetId=os.getenv("SPREADSHEET_ID"), 
-                range=f"{self.sheet_name}!{range}" if range is not None else f"{self.sheet_name}",
+            values = self._spreadsheet._spreadsheet.values().get(
+                spreadsheetId=self._spreadsheet._spreadsheet_id, 
+                range=f"{self._sheet_name}!{range}" if range is not None else f"{self._sheet_name}",
             ).execute().get("values", [])
 
             return values
@@ -145,9 +146,9 @@ class GoogleSheet:
             @return `list[list[str]]`: column content.
             """
 
-            values = self.spreadsheet.values().get(
-                spreadsheetId=os.getenv("SPREADSHEET_ID"), 
-                range=f"{self.sheet_name}!{col}:{col}"
+            values = self._spreadsheet._spreadsheet.values().get(
+                spreadsheetId=self._spreadsheet._spreadsheet_id, 
+                range=f"{self._sheet_name}!{col}:{col}"
             ).execute().get("values", [])
 
             return values[1:]
@@ -165,9 +166,9 @@ class GoogleSheet:
 
             range = get_range(start_cell, (len(values[0]), len(values)))
 
-            self.spreadsheet.values().update(
-                spreadsheetId=os.getenv("SPREADSHEET_ID"), 
-                range=f"{self.sheet_name}!{range}",
+            self._spreadsheet._spreadsheet.values().update(
+                spreadsheetId=self._spreadsheet._spreadsheet_id, 
+                range=f"{self._sheet_name}!{range}",
                 valueInputOption="USER_ENTERED",
                 body={"values": values}
             ).execute()
@@ -180,8 +181,8 @@ class GoogleSheet:
 
             label = number_to_label(len(self.read()[0]))
             
-            self.spreadsheet.values().clear(
-                spreadsheetId=os.getenv("SPREADSHEET_ID"), 
-                range=f"{self.sheet_name}!A2:{label}",
+            self._spreadsheet._spreadsheet.values().clear(
+                spreadsheetId=self._spreadsheet._spreadsheet_id, 
+                range=f"{self._sheet_name}!A2:{label}",
                 body={}
             ).execute()

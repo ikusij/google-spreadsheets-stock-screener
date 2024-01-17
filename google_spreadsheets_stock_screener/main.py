@@ -36,8 +36,9 @@ if __name__ == "__main__":
                 sheet_values[index].append(indicator_value)
             except IndexError:
                 sheet_values.append([indicator_value])
-            
-    ticker_sheet.write(valid_tickers)
+    
+    if len(valid_tickers) != 0:
+        ticker_sheet.write(valid_tickers)
 
     sheet_names = ["MovingAverage", "RSI", "BollingerBands"]
 
