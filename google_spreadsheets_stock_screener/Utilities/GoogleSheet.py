@@ -56,8 +56,8 @@ def get_range(start_cell: str, shape: tuple[int, int]) -> str:
     pattern = r"([A-Z]+)(\d+)"
     label_row_start, label_col_start = re.match(pattern, start_cell).groups()
 
-    label_row_end = number_to_label(label_to_number(label_row_start) + shape[0])
-    label_col_end = int(label_col_start) + shape[1]
+    label_row_end = number_to_label(label_to_number(label_row_start) + shape[0] - 1)
+    label_col_end = int(label_col_start) + shape[1] - 1
 
     return f"{start_cell}:{label_row_end}{label_col_end}" 
 
